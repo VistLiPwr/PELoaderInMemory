@@ -1,10 +1,11 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include<windows.h>
 #include<fstream>
-#define _CRT_SECURE_NO_WARNINGS
+#pragma warning( disable : 4996 )
 //内存加载模块
 
 //把文件内容读入内存
-BYTE* ReadFileToMemory(LPCSTR filename, LONGLONG &filelen)
+inline BYTE* ReadFileToMemory(LPCSTR filename, LONGLONG &filelen)
 {
 	FILE* fileptr;
 	BYTE* buffer;
@@ -24,9 +25,9 @@ BYTE* ReadFileToMemory(LPCSTR filename, LONGLONG &filelen)
 
 
 //获取文件的NT头
-BYTE* getNtHdrs(BYTE* pe_buffer)
+inline BYTE* getNtHdrs(BYTE* pe_buffer)
 {
-    if (pe_buffer == NULL) return;
+    if (pe_buffer == NULL) return NULL;
     IMAGE_DOS_HEADER* idh = (IMAGE_DOS_HEADER*)pe_buffer;
     if (idh->e_magic != IMAGE_DOS_SIGNATURE) return NULL;
     const LONG MaxOffset = 1024;
@@ -40,7 +41,7 @@ BYTE* getNtHdrs(BYTE* pe_buffer)
 
 //获取PE文件指定目录
 
-IMAGE_DATA_DIRECTORY* getPeDirectory(PVOID pe_buffer, size_t dir_id)
+inline IMAGE_DATA_DIRECTORY* getPeDirectory(PVOID pe_buffer, size_t dir_id)
 {
     if (dir_id >= IMAGE_NUMBEROF_DIRECTORY_ENTRIES) return NULL;
     BYTE* nt_headers = getNtHdrs((BYTE*)pe_buffer);

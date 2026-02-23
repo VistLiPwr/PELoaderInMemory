@@ -2,8 +2,8 @@
 #include <stdio.h>  
 #include <string.h>
 #include"peBase.hpp"
-
-
+#include"fixIAT.hpp"
+#include"fixReloc.hpp"
 
 int main(int argc,char *argv[]) {
 	if (argc != 2) {

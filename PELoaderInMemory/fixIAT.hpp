@@ -1,3 +1,4 @@
+#pragma once
 #include<string>
 #include<windows.h>
 #include"peBase.hpp"
@@ -100,7 +101,7 @@ inline bool fixIAT(PVOID moduleptr)
             {
                 // === 按序号导入 ===
                 size_t addr = (size_t)GetProcAddress(hmodule, (char*)(originThunk->u1.Ordinal & 0xFFFF));
-                printf("  API by Ordinal %x at %Ix\n", (originThunk->u1.Ordinal & 0xFFFF), addr);
+                printf("  API by Ordinal %llx at %llx\n", (originThunk->u1.Ordinal & 0xFFFF), addr);
                 fieldThunk->u1.Function = addr;
             }
             else

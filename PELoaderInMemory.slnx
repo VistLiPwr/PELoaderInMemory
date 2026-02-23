@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="PELoaderInMemory/PELoaderInMemory.vcxproj" />
+  <Project Path="PELoaderInMemory/PELoaderInMemory.vcxproj" Id="e7601a62-bcd1-4037-ab7f-383ab5d139ba" />
 </Solution>

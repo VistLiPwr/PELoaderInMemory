@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include<string>
 #include<windows.h>
 #include"peBase.hpp"
@@ -6,15 +6,11 @@ using namespace std;
 
 
 bool hijackCmd = false;
-//ANSI
 char* masqCmd_Ansi = NULL;
 char* masqCmd_ArgvAnsi[100] = {};
-//宽字节
 wchar_t* masqCmd_Width = NULL;
 wchar_t* masqCmd_ArgvWidth[100] = {};
-//伪装命令行的参数
 int masqCmd_Argc = 0;
-//劫持GetCommandLine函数
 LPSTR hookGetCommandLineA() { return masqCmd_Ansi; }
 LPWSTR hookGetCommandLineW() { return masqCmd_Width; }
 
@@ -30,15 +26,13 @@ int __wgetmainargs(int* argc, wchar_t*** argv, wchar_t*** env, int doWildCard, P
     return 0;
 }
 
-//伪装命令行
 
 inline void masqCmdLine(const wchar_t* cmdline)
 {
     if (!cmdline) return ;
     auto sz_wcmdline = wstring(cmdline);
 
-    //分配内存并复制伪装的命令行
-    masqCmd_Width = new wchar_t[sz_wcmdline.size() + 1];  //堆上分配，保证存活
+    masqCmd_Width = new wchar_t[sz_wcmdline.size() + 1];  
     lstrcpyW(masqCmd_Width, sz_wcmdline.c_str());
 
     auto k = string(sz_wcmdline.begin(), sz_wcmdline.end());
@@ -60,7 +54,7 @@ inline void masqCmdLine(const wchar_t* cmdline)
 }
 
 
-//修复IAT
+
 inline bool fixIAT(PVOID moduleptr)
 {
     printf("Fix Import Address Table \n");
@@ -69,37 +63,34 @@ inline bool fixIAT(PVOID moduleptr)
 
     size_t maxSize = importsDir->Size;
     size_t impAddr = importsDir->VirtualAddress;
-    IMAGE_IMPORT_DESCRIPTOR* lib_desc = NULL; //准备挨个读取
-    size_t parsedSize = 0;
+    IMAGE_IMPORT_DESCRIPTOR* lib_desc = NULL; 
+    size_t parsedSize = 0; 
 
     for (; parsedSize < maxSize; parsedSize += sizeof(IMAGE_IMPORT_DESCRIPTOR))
     {
         lib_desc = (IMAGE_IMPORT_DESCRIPTOR*)(impAddr + parsedSize + (ULONG_PTR)moduleptr);
         if (lib_desc->OriginalFirstThunk == NULL && lib_desc->FirstThunk == NULL) break;
-        LPSTR lib_name = (LPSTR)((ULONG_PTR)moduleptr + lib_desc->Name);
+        LPSTR lib_name = (LPSTR)((ULONG_PTR)moduleptr + lib_desc->Name); 
         printf("Import DLL: %s\n", lib_name);
 
         size_t call_via = lib_desc->FirstThunk;
         size_t thunk_addr = lib_desc->OriginalFirstThunk;
-        //经过混淆之类的操作的PE文件，OriginalFirstThunk可能会为空
         if (thunk_addr == NULL) thunk_addr = lib_desc->FirstThunk;
 
-        size_t offsetField = 0; //IAT
-        size_t offsetThunk = 0; //INTD
+        size_t offsetField = 0; 
+        size_t offsetThunk = 0; 
         while (true)
         {
             IMAGE_THUNK_DATA* fieldThunk =(IMAGE_THUNK_DATA*) ((size_t)moduleptr + call_via + offsetField);
             IMAGE_THUNK_DATA* originThunk = (IMAGE_THUNK_DATA*)(size_t(moduleptr) + offsetThunk + thunk_addr);
 
-            if (originThunk->u1.Function == NULL) break;  //为空遍历完成，跳出
+            if (originThunk->u1.Function == NULL) break; 
 
             HMODULE hmodule = LoadLibraryA(lib_name);
             if (!hmodule) break;
 
-            //好像按序号导入无法劫持到了
             if (originThunk->u1.Ordinal & IMAGE_ORDINAL_FLAG32 || originThunk->u1.Ordinal & IMAGE_ORDINAL_FLAG64)
             {
-                // === 按序号导入 ===
                 size_t addr = (size_t)GetProcAddress(hmodule, (char*)(originThunk->u1.Ordinal & 0xFFFF));
                 printf("  API by Ordinal %llx at %llx\n", (originThunk->u1.Ordinal & 0xFFFF), addr);
                 fieldThunk->u1.Function = addr;

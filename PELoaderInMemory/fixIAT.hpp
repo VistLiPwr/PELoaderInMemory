@@ -118,4 +118,5 @@ inline bool fixIAT(PVOID moduleptr)
         }
     }
     return true;
+
 }
